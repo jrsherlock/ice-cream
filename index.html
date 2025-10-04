@@ -236,7 +236,7 @@
         .card-front img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             border-radius: 9px;
         }
 
@@ -325,10 +325,9 @@
             max-width: min(90vw, 1200px);
             max-height: min(90vh, 1200px);
             border-radius: clamp(12px, 2vmin, 24px);
-            object-fit: cover;
+            object-fit: contain;
             border: clamp(3px, 0.5vmin, 6px) solid var(--ice-cream-yellow);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-            aspect-ratio: 1 / 1;
         }
 
         .modal-title {
