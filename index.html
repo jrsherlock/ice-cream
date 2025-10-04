@@ -611,13 +611,13 @@
         #difficulty-screen .high-score-display {
             font-size: clamp(0.9rem, 2.2vmin, 1.2rem);
             font-weight: 700;
-            color: var(--ice-cream-yellow);
+            color: var(--primary-blue);
             text-shadow:
-                1px 1px 2px rgba(0, 0, 0, 0.3),
-                0 0 10px rgba(255, 193, 7, 0.5);
+                1px 1px 2px rgba(255, 255, 255, 0.5),
+                0 0 8px rgba(0, 102, 204, 0.3);
             margin-top: -0.75rem;
             margin-bottom: 1.5rem;
-            background: linear-gradient(90deg, transparent 0%, rgba(255, 193, 7, 0.1) 50%, transparent 100%);
+            background: linear-gradient(90deg, transparent 0%, rgba(0, 102, 204, 0.08) 50%, transparent 100%);
             padding: 0.5rem;
             border-radius: 8px;
             animation: scoreShine 2s ease-in-out infinite;
@@ -867,7 +867,7 @@
     <div class="modal-content">
         <h3 id="end-game-title" class="modal-title">Game Over</h3>
         <p id="end-game-message" class="modal-description"></p>
-        <p class="modal-description" style="font-size: 1.5rem; font-weight: 700; color: var(--ice-cream-yellow); text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+        <p class="modal-description" style="font-size: 1.5rem; font-weight: 700; color: var(--primary-blue); text-shadow: 1px 1px 2px rgba(255,255,255,0.5), 0 0 8px rgba(0,102,204,0.3);">
             Final Score: <span id="final-score"></span> points
         </p>
         <button id="play-again-btn" class="btn">Play Again</button>
