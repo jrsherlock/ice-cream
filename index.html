@@ -83,9 +83,13 @@
             flex-shrink: 0;
         }
 
-        .game-header .bunny-emoji {
-            font-size: clamp(1.5rem, 4vmin, 3rem);
+        .game-header .bunny-header-logo {
+            height: clamp(1.5rem, 4vmin, 3rem);
+            width: auto;
             margin-right: clamp(0.25rem, 1vmin, 0.75rem);
+            vertical-align: middle;
+            display: inline-block;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
         }
         
         .difficulty-buttons {
@@ -120,7 +124,22 @@
             background-repeat: no-repeat;
             opacity: 0.15;
             z-index: 0;
-            animation: subtleFloat 20s ease-in-out infinite;
+            animation:
+                backgroundEntrance 3s ease-in-out forwards,
+                subtleFloat 20s ease-in-out 3s infinite;
+        }
+
+        /* Two-stage entrance animation for background */
+        @keyframes backgroundEntrance {
+            0% {
+                opacity: 1;
+            }
+            66.67% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.15;
+            }
         }
 
         @keyframes subtleFloat {
@@ -142,13 +161,15 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.8);
             border: 2px solid rgba(255, 255, 255, 0.5);
             max-width: 600px;
-            animation: slideInBounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            animation: contentEntrance 1s ease-in-out 2s forwards;
+            opacity: 0;
         }
 
-        @keyframes slideInBounce {
+        /* Two-stage entrance animation for content */
+        @keyframes contentEntrance {
             0% {
                 opacity: 0;
-                transform: translateY(-50px) scale(0.9);
+                transform: translateY(-30px) scale(0.95);
             }
             100% {
                 opacity: 1;
@@ -172,6 +193,47 @@
             text-shadow: 2px 2px 4px rgba(0, 102, 204, 0.2);
             margin-bottom: clamp(1rem, 3vmin, 2rem);
             position: relative;
+        }
+
+        /* Game description styling */
+        .game-description {
+            max-width: 600px;
+            margin: 0 auto clamp(1.5rem, 4vmin, 2.5rem);
+            padding: clamp(1rem, 2.5vmin, 1.5rem) clamp(1.5rem, 3vmin, 2rem);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+            border-radius: clamp(12px, 2vmin, 20px);
+            box-shadow:
+                0 4px 15px rgba(0, 102, 204, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            border: 2px solid rgba(0, 102, 204, 0.1);
+            position: relative;
+        }
+
+        .game-description p {
+            font-size: clamp(1rem, 2.2vmin, 1.3rem);
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        /* Staged animation classes */
+        .stage-animate {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .stage-animate.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Prevent button interaction until visible */
+        #difficulty-buttons:not(.visible) .btn {
+            pointer-events: none;
+            cursor: default;
         }
 
         .btn {
@@ -278,6 +340,11 @@
             }
         }
 
+        /* Game container specific styling for proper spacing */
+        #game-container {
+            padding-bottom: clamp(1.5rem, 4vmin, 3rem);
+        }
+
         .info-bar {
             display: flex;
             justify-content: space-around;
@@ -320,6 +387,7 @@
             place-content: center;
             padding: 0;
             margin: 0 auto;
+            margin-bottom: clamp(2rem, 5vmin, 3.5rem);
         }
 
         /* Easy mode: 4x4 grid - responsive sizing */
@@ -327,8 +395,9 @@
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(4, 1fr);
             /* Maximize board size - use the smaller dimension to keep it square */
-            width: min(95vw, calc(100vh - 120px));
-            height: min(95vw, calc(100vh - 120px));
+            /* Increased spacing: changed from 120px to 180px to account for bottom margin */
+            width: min(95vw, calc(100vh - 180px));
+            height: min(95vw, calc(100vh - 180px));
             aspect-ratio: 1 / 1;
         }
 
@@ -337,8 +406,9 @@
             grid-template-columns: repeat(6, 1fr);
             grid-template-rows: repeat(6, 1fr);
             /* Maximize board size - use the smaller dimension to keep it square */
-            width: min(95vw, calc(100vh - 120px));
-            height: min(95vw, calc(100vh - 120px));
+            /* Increased spacing: changed from 120px to 180px to account for bottom margin */
+            width: min(95vw, calc(100vh - 180px));
+            height: min(95vw, calc(100vh - 180px));
             aspect-ratio: 1 / 1;
         }
 
@@ -690,8 +760,12 @@
             }
             #game-board.easy-mode,
             #game-board.hard-mode {
-                width: min(calc(100vw - 10px), calc(100vh - 100px));
-                height: min(calc(100vw - 10px), calc(100vh - 100px));
+                /* Increased bottom spacing on mobile: changed from 100px to 140px */
+                width: min(calc(100vw - 10px), calc(100vh - 140px));
+                height: min(calc(100vw - 10px), calc(100vh - 140px));
+            }
+            #game-container {
+                padding-bottom: clamp(1rem, 3vmin, 2rem);
             }
             /* Ensure minimum touch target size */
             .card {
@@ -737,6 +811,14 @@
                 font-size: clamp(1rem, 4vw, 1.3rem);
                 padding: 0.875rem 1.5rem;
             }
+            .game-description {
+                padding: 0.75rem 1rem;
+                margin-bottom: 1rem;
+            }
+            .game-description p {
+                font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+                line-height: 1.5;
+            }
         }
 
         /* Tablets and small laptops */
@@ -749,8 +831,9 @@
             }
             #game-board.easy-mode,
             #game-board.hard-mode {
-                width: min(95vw, calc(100vh - 110px));
-                height: min(95vw, calc(100vh - 110px));
+                /* Increased bottom spacing on tablets: changed from 110px to 160px */
+                width: min(95vw, calc(100vh - 160px));
+                height: min(95vw, calc(100vh - 160px));
             }
         }
 
@@ -797,8 +880,12 @@
             }
             #game-board.easy-mode,
             #game-board.hard-mode {
-                width: min(calc(100vh - 80px), 95vw);
-                height: min(calc(100vh - 80px), 95vw);
+                /* Increased bottom spacing in landscape: changed from 80px to 110px */
+                width: min(calc(100vh - 110px), 95vw);
+                height: min(calc(100vh - 110px), 95vw);
+            }
+            #game-container {
+                padding-bottom: 1rem;
             }
             /* Modal adjustments for landscape */
             .modal-content {
@@ -833,9 +920,12 @@
 
 <div id="difficulty-screen" class="screen active">
     <div class="difficulty-content">
-        <img src="Images/bunny.jpg" alt="Wells Blue Bunny Logo" class="bunny-logo">
-        <h2 class="game-header">Wells Blue Bunny Memory Match</h2>
-        <div class="difficulty-buttons">
+        <img src="Images/bunny5.png" alt="Wells Blue Bunny Logo" class="bunny-logo">
+        <h2 class="game-header stage-animate" id="game-title">Wells Blue Bunny: Hare-Brained Ideas</h2>
+        <div class="game-description stage-animate" id="game-description">
+            <p>Can you match the discontinued flavors that didn't make the cut? Test your memory with Wells Blue Bunny's most hare-brained ice cream ideas!</p>
+        </div>
+        <div class="difficulty-buttons stage-animate" id="difficulty-buttons">
             <button class="btn" id="easy-btn">🍦 Easy Mode (4x4)</button>
             <p class="high-score-display">🏆 High Score: <span id="easy-high-score">0</span> points</p>
             <button class="btn" id="hard-btn">🔥 Hard Mode (6x6)</button>
@@ -845,7 +935,7 @@
 </div>
 
 <div id="game-container" class="screen">
-    <h3 class="game-header"><span class="bunny-emoji">🐰</span>Wells Blue Bunny Memory Match</h3>
+    <h3 class="game-header"><img src="Images/bunny5.png" alt="Wells Blue Bunny" class="bunny-header-logo">Wells Blue Bunny Memory Match</h3>
     <div class="info-bar">
         <span>🏆 Score: <span id="score-display">0</span></span>
         <span>⏱️ Time: <span id="timer-display"></span>s</span>
@@ -882,6 +972,31 @@
         const gameBoard = document.getElementById('game-board');
         const scoreDisplay = document.getElementById('score-display');
         const timerDisplay = document.getElementById('timer-display');
+
+        // --- Staged Landing Page Animation ---
+        function initLandingAnimation() {
+            const gameTitle = document.getElementById('game-title');
+            const gameDescription = document.getElementById('game-description');
+            const difficultyButtons = document.getElementById('difficulty-buttons');
+
+            // Stage 1: Fade in title after 2 seconds
+            setTimeout(() => {
+                gameTitle.classList.add('visible');
+            }, 2000);
+
+            // Stage 2: Fade in description after 3 seconds total (1 second after title)
+            setTimeout(() => {
+                gameDescription.classList.add('visible');
+            }, 3000);
+
+            // Stage 3: Fade in buttons after 5 seconds total (2 seconds after description)
+            setTimeout(() => {
+                difficultyButtons.classList.add('visible');
+            }, 5000);
+        }
+
+        // Initialize landing animation on page load
+        initLandingAnimation();
 
         // --- Modals ---
         const matchModal = document.getElementById('match-modal');
@@ -1042,6 +1157,21 @@
                     screen.classList.remove('active');
                 }
             });
+
+            // Reset and restart landing animation when returning to difficulty screen
+            if (screenId === 'difficulty-screen') {
+                const gameTitle = document.getElementById('game-title');
+                const gameDescription = document.getElementById('game-description');
+                const difficultyButtons = document.getElementById('difficulty-buttons');
+
+                // Reset all animations
+                gameTitle.classList.remove('visible');
+                gameDescription.classList.remove('visible');
+                difficultyButtons.classList.remove('visible');
+
+                // Restart the staged animation
+                initLandingAnimation();
+            }
         }
 
         function updateHighScores() {
