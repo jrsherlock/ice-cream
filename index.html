@@ -123,43 +123,9 @@
             animation: subtleFloat 20s ease-in-out infinite;
         }
 
-        /* Animated ice cream cone decorations */
-        #difficulty-screen::after {
-            content: '🍦';
-            position: absolute;
-            font-size: clamp(3rem, 8vmin, 6rem);
-            opacity: 0.1;
-            animation: floatAround 15s ease-in-out infinite;
-            z-index: 1;
-            pointer-events: none;
-        }
-
         @keyframes subtleFloat {
             0%, 100% { transform: scale(1) translateY(0); }
             50% { transform: scale(1.05) translateY(-10px); }
-        }
-
-        @keyframes floatAround {
-            0%, 100% {
-                top: 10%;
-                left: 5%;
-                transform: rotate(0deg);
-            }
-            25% {
-                top: 20%;
-                left: 85%;
-                transform: rotate(90deg);
-            }
-            50% {
-                top: 80%;
-                left: 90%;
-                transform: rotate(180deg);
-            }
-            75% {
-                top: 70%;
-                left: 10%;
-                transform: rotate(270deg);
-            }
         }
 
         /* Content container with frosted glass effect */
@@ -190,35 +156,22 @@
             }
         }
 
+        /* Blue Bunny Logo */
+        .bunny-logo {
+            width: clamp(120px, 20vmin, 200px);
+            height: auto;
+            margin-bottom: clamp(1rem, 2vmin, 1.5rem);
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+        }
+
         /* Enhanced title styling */
         #difficulty-screen .game-header {
             font-size: clamp(1.8rem, 5vmin, 3.5rem);
             font-weight: 900;
-            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--bunny-pink) 50%, var(--ice-cream-yellow) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: none;
+            color: var(--primary-blue);
+            text-shadow: 2px 2px 4px rgba(0, 102, 204, 0.2);
             margin-bottom: clamp(1rem, 3vmin, 2rem);
-            animation: titleShimmer 3s ease-in-out infinite;
             position: relative;
-        }
-
-        @keyframes titleShimmer {
-            0%, 100% { filter: brightness(1) saturate(1); }
-            50% { filter: brightness(1.2) saturate(1.3); }
-        }
-
-        #difficulty-screen .bunny-emoji {
-            display: inline-block;
-            animation: bunnyBounce 2s ease-in-out infinite;
-            font-size: clamp(2rem, 6vmin, 4rem);
-        }
-
-        @keyframes bunnyBounce {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            25% { transform: translateY(-10px) rotate(-5deg); }
-            75% { transform: translateY(-5px) rotate(5deg); }
         }
 
         .btn {
@@ -339,24 +292,7 @@
             gap: clamp(0.5rem, 2vmin, 1rem);
         }
 
-        .mute-button {
-            background: none;
-            border: none;
-            font-size: clamp(1.2rem, 3vmin, 1.8rem);
-            cursor: pointer;
-            padding: 0.25rem;
-            transition: transform 0.2s, opacity 0.2s;
-            opacity: 0.8;
-        }
 
-        .mute-button:hover {
-            transform: scale(1.1);
-            opacity: 1;
-        }
-
-        .mute-button:active {
-            transform: scale(0.95);
-        }
 
         #score-display {
             color: var(--accent-green);
@@ -751,9 +687,6 @@
                 font-size: clamp(1rem, 4vw, 1.3rem);
                 padding: 0.875rem 1.5rem;
             }
-            #difficulty-screen::after {
-                font-size: 3rem;
-            }
         }
 
         /* Tablets and small laptops */
@@ -825,7 +758,8 @@
 
 <div id="difficulty-screen" class="screen active">
     <div class="difficulty-content">
-        <h2 class="game-header"><span class="bunny-emoji">🐰</span>Wells Blue Bunny Memory Match</h2>
+        <img src="Images/bunny.jpg" alt="Wells Blue Bunny Logo" class="bunny-logo">
+        <h2 class="game-header">Wells Blue Bunny Memory Match</h2>
         <div class="difficulty-buttons">
             <button class="btn" id="easy-btn">🍦 Easy Mode (4x4)</button>
             <p class="high-score-display">🏆 High Score: <span id="easy-high-score">0</span> points</p>
@@ -840,7 +774,6 @@
     <div class="info-bar">
         <span>🏆 Score: <span id="score-display">0</span></span>
         <span>⏱️ Time: <span id="timer-display"></span>s</span>
-        <button id="mute-button" class="mute-button" title="Toggle sound">🔊</button>
     </div>
     <div id="game-board"></div>
 </div>
@@ -868,68 +801,12 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
-        // --- Audio System ---
-        let isMuted = false;
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-        // Simple sound generator using Web Audio API
-        function playSound(frequency, duration, type = 'sine', volume = 0.3) {
-            if (isMuted) return;
-
-            try {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-
-                oscillator.type = type;
-                oscillator.frequency.value = frequency;
-
-                gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + duration);
-            } catch (error) {
-                console.log('Audio playback failed:', error);
-            }
-        }
-
-        // Sound effects
-        const sounds = {
-            flip: () => {
-                // Quick whoosh sound
-                playSound(400, 0.1, 'sine', 0.2);
-                setTimeout(() => playSound(300, 0.08, 'sine', 0.15), 50);
-            },
-            match: () => {
-                // Pleasant success chime
-                playSound(523.25, 0.15, 'sine', 0.25); // C5
-                setTimeout(() => playSound(659.25, 0.15, 'sine', 0.25), 100); // E5
-                setTimeout(() => playSound(783.99, 0.3, 'sine', 0.25), 200); // G5
-            },
-            noMatch: () => {
-                // Gentle descending tone
-                playSound(400, 0.15, 'sine', 0.2);
-                setTimeout(() => playSound(350, 0.2, 'sine', 0.15), 100);
-            },
-            victory: () => {
-                // Celebratory ascending melody
-                const notes = [523.25, 587.33, 659.25, 783.99, 880.00]; // C5, D5, E5, G5, A5
-                notes.forEach((note, index) => {
-                    setTimeout(() => playSound(note, 0.2, 'sine', 0.25), index * 120);
-                });
-            }
-        };
-
         const screens = document.querySelectorAll('.screen');
         const modals = document.querySelectorAll('.modal-overlay');
 
         const gameBoard = document.getElementById('game-board');
         const scoreDisplay = document.getElementById('score-display');
         const timerDisplay = document.getElementById('timer-display');
-        const muteButton = document.getElementById('mute-button');
 
         // --- Modals ---
         const matchModal = document.getElementById('match-modal');
@@ -1138,9 +1015,6 @@
         function flipCard() {
             if (lockBoard || this === firstCard || this.classList.contains('is-flipped')) return;
 
-            // Play flip sound
-            sounds.flip();
-
             this.classList.add('is-flipped');
             if (!hasFlippedCard) {
                 hasFlippedCard = true;
@@ -1155,12 +1029,8 @@
         function checkForMatch() {
             const isMatch = firstCard.dataset.name === secondCard.dataset.name;
             if (isMatch) {
-                // Play match sound
-                sounds.match();
                 showMatchModal();
             } else {
-                // Play no-match sound
-                sounds.noMatch();
                 incorrectGuesses++;
                 // Penalty: -2 points for incorrect guess
                 score = Math.max(0, score - 2);
@@ -1251,9 +1121,6 @@
             let bonusPoints = 0;
 
             if (isWin) {
-                // Play victory sound
-                sounds.victory();
-
                 // Time bonus: 3 points per second remaining
                 bonusPoints = timeLeft * 3;
 
@@ -1331,13 +1198,6 @@
 
         // Initialize high scores display
         updateHighScores();
-
-        // Mute button event listener
-        muteButton.addEventListener('click', () => {
-            isMuted = !isMuted;
-            muteButton.textContent = isMuted ? '🔇' : '🔊';
-            muteButton.title = isMuted ? 'Unmute sound' : 'Mute sound';
-        });
 
         // Event listeners for difficulty buttons
         document.getElementById('easy-btn').addEventListener('click', () => initGame('easy'));
