@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wells Blue Bunny Memory Match</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Wells Blue Bunny Brand Colors */
+            --primary-blue: #0066CC;
+            --light-blue: #4A9FE8;
+            --bunny-pink: #FF69B4;
+            --cream-white: #FFF8F0;
+            --ice-cream-yellow: #FFD700;
+            --bg-gradient-start: #E6F3FF;
+            --bg-gradient-end: #FFF0F5;
+            --card-bg: #FFFFFF;
+            --card-shadow: rgba(0, 102, 204, 0.2);
+            --text-dark: #2C3E50;
+            --text-light: #FFFFFF;
+            --accent-green: #4ade80;
+            --accent-red: #f87171;
+            --button-bg: var(--primary-blue);
+            --button-hover-bg: var(--light-blue);
+            --button-active-bg: #004C99;
+        }
+
+        html {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            position: relative;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            color: var(--text-dark);
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            text-align: center;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--card-bg);
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            box-sizing: border-box;
+        }
+
+        .screen.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        .game-header {
+            font-size: clamp(1.2rem, 3.5vmin, 2.5rem);
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin: 0;
+            padding: clamp(0.2rem, 0.5vmin, 0.5rem) 0;
+            text-shadow: 2px 2px 4px rgba(0, 102, 204, 0.1);
+            flex-shrink: 0;
+        }
+
+        .game-header .bunny-emoji {
+            font-size: clamp(1.5rem, 4vmin, 3rem);
+            margin-right: clamp(0.25rem, 1vmin, 0.75rem);
+        }
+        
+        .difficulty-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        #difficulty-screen {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn {
+            padding: clamp(0.75rem, 2vmin, 1.5rem) clamp(1.5rem, 4vmin, 3rem);
+            font-size: clamp(1rem, 2.5vmin, 1.5rem);
+            font-weight: 700;
+            color: var(--text-light);
+            background: linear-gradient(135deg, var(--button-bg) 0%, var(--light-blue) 100%);
+            border: none;
+            border-radius: clamp(8px, 1.5vmin, 16px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+            min-height: 44px; /* Ensure touch target size */
+            min-width: 120px;
+        }
+        .btn:hover {
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--button-bg) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+        }
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0, 102, 204, 0.3);
+        }
+
+        .info-bar {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            font-size: clamp(0.8rem, 2vmin, 1.3rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--cream-white) 0%, #FFF 100%);
+            padding: clamp(0.4rem, 1vmin, 0.75rem);
+            border-radius: clamp(6px, 1vmin, 12px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+            gap: clamp(0.5rem, 2vmin, 1rem);
+        }
+
+        #score-display {
+            color: var(--accent-green);
+            font-size: clamp(1rem, 2.5vmin, 1.5rem);
+        }
+        #timer-display {
+            color: var(--primary-blue);
+            transition: color 0.3s;
+            font-size: clamp(1rem, 2.5vmin, 1.5rem);
+        }
+        #timer-display.low-time {
+            color: var(--accent-red);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        #game-board {
+            display: grid;
+            grid-gap: clamp(4px, 0.5vmin, 12px);
+            perspective: 1000px;
+            place-content: center;
+            padding: 0;
+            margin: 0 auto;
+        }
+
+        /* Easy mode: 4x4 grid - responsive sizing */
+        #game-board.easy-mode {
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            /* Maximize board size - use the smaller dimension to keep it square */
+            width: min(95vw, calc(100vh - 120px));
+            height: min(95vw, calc(100vh - 120px));
+            aspect-ratio: 1 / 1;
+        }
+
+        /* Hard mode: 6x6 grid - responsive sizing */
+        #game-board.hard-mode {
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            /* Maximize board size - use the smaller dimension to keep it square */
+            width: min(95vw, calc(100vh - 120px));
+            height: min(95vw, calc(100vh - 120px));
+            aspect-ratio: 1 / 1;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+            min-width: 0;
+            min-height: 0;
+            aspect-ratio: 1 / 1;
+        }
+
+        .card.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card.matched {
+            animation: pop 0.5s ease-in-out;
+        }
+
+        @keyframes pop {
+            0% { transform: rotateY(180deg) scale(1); }
+            50% { transform: rotateY(180deg) scale(1.15); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-front {
+            background-color: var(--card-bg);
+            transform: rotateY(180deg);
+            border: 3px solid var(--primary-blue);
+        }
+
+        .card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 9px;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--light-blue) 100%);
+            border: 3px solid var(--ice-cream-yellow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-back::before {
+            content: '🍦';
+            /* Responsive emoji size based on card size */
+            font-size: clamp(1.5rem, 6vmin, 8rem);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .card-back::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--cream-white) 100%);
+            padding: clamp(1.5rem, 4vmin, 4rem);
+            border-radius: clamp(16px, 3vmin, 32px);
+            text-align: center;
+            max-width: 95vw;
+            max-height: 95vh;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(1rem, 2vmin, 2rem);
+            align-items: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease-in-out;
+            border: clamp(3px, 0.5vmin, 6px) solid var(--primary-blue);
+            box-shadow: 0 20px 60px rgba(0, 102, 204, 0.4);
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        #modal-image {
+            /* Fully responsive modal image - scales from mobile to 4K */
+            width: clamp(280px, 80vw, 90vh);
+            height: clamp(280px, 80vw, 90vh);
+            max-width: min(90vw, 1200px);
+            max-height: min(90vh, 1200px);
+            border-radius: clamp(12px, 2vmin, 24px);
+            object-fit: cover;
+            border: clamp(3px, 0.5vmin, 6px) solid var(--ice-cream-yellow);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            aspect-ratio: 1 / 1;
+        }
+
+        .modal-title {
+            font-size: clamp(1.5rem, 4vmin, 3rem);
+            font-weight: 800;
+            margin: 0;
+        }
+
+        #modal-title {
+            color: var(--bunny-pink);
+            text-shadow: 2px 2px 4px rgba(255, 105, 180, 0.3);
+        }
+        #end-game-title {
+            color: var(--primary-blue);
+            font-size: clamp(1.8rem, 5vmin, 3.5rem);
+        }
+
+        .modal-description {
+            font-size: clamp(1rem, 2.5vmin, 1.8rem);
+            line-height: 1.6;
+            margin: 0;
+            color: var(--text-dark);
+            font-style: italic;
+            max-width: min(90%, 800px);
+        }
+
+        .high-score-display {
+            font-size: 0.95rem;
+            color: var(--primary-blue);
+            font-weight: 600;
+            margin-top: -0.5rem;
+        }
+
+        .match-celebration {
+            font-size: 4rem;
+            animation: celebrate 0.6s ease-in-out;
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.2) rotate(-10deg); }
+            75% { transform: scale(1.2) rotate(10deg); }
+        }
+
+        /* Mobile devices (portrait phones) */
+        @media (max-width: 480px) {
+            .screen {
+                padding: 0.25rem;
+            }
+            .game-header {
+                font-size: clamp(1.2rem, 5vw, 1.5rem);
+                padding: 0.25rem 0;
+            }
+            .info-bar {
+                font-size: clamp(0.8rem, 3vw, 0.9rem);
+                padding: 0.4rem;
+                gap: 0.5rem;
+            }
+            #game-board.easy-mode,
+            #game-board.hard-mode {
+                width: min(calc(100vw - 10px), calc(100vh - 100px));
+                height: min(calc(100vw - 10px), calc(100vh - 100px));
+            }
+            /* Ensure minimum touch target size */
+            .card {
+                min-width: 44px;
+                min-height: 44px;
+            }
+        }
+
+        /* Tablets and small laptops */
+        @media (min-width: 481px) and (max-width: 1024px) {
+            .game-header {
+                font-size: clamp(1.4rem, 3vw, 1.8rem);
+            }
+            .info-bar {
+                font-size: clamp(0.9rem, 2vw, 1.1rem);
+            }
+            #game-board.easy-mode,
+            #game-board.hard-mode {
+                width: min(95vw, calc(100vh - 110px));
+                height: min(95vw, calc(100vh - 110px));
+            }
+        }
+
+        /* Desktop and large screens */
+        @media (min-width: 1025px) and (max-width: 1920px) {
+            #game-board.easy-mode,
+            #game-board.hard-mode {
+                width: min(95vw, calc(100vh - 120px));
+                height: min(95vw, calc(100vh - 120px));
+            }
+        }
+
+        /* Large displays (4K, ultra-wide) */
+        @media (min-width: 1921px) {
+            .game-header {
+                font-size: clamp(1.8rem, 2vw, 2.5rem);
+            }
+            .info-bar {
+                font-size: clamp(1.1rem, 1.5vw, 1.5rem);
+                padding: clamp(0.75rem, 1vw, 1.5rem);
+            }
+            #game-board.easy-mode,
+            #game-board.hard-mode {
+                /* Allow board to scale up significantly on large displays */
+                width: min(95vw, calc(100vh - 140px), 2000px);
+                height: min(95vw, calc(100vh - 140px), 2000px);
+            }
+            /* Scale up modal for large displays */
+            #modal-image {
+                max-width: min(90vw, 1600px);
+                max-height: min(90vh, 1600px);
+            }
+        }
+
+        /* Landscape orientation adjustments */
+        @media (orientation: landscape) and (max-height: 600px) {
+            .game-header {
+                font-size: 1.2rem;
+                padding: 0.2rem 0;
+            }
+            .info-bar {
+                font-size: 0.85rem;
+                padding: 0.3rem;
+            }
+            #game-board.easy-mode,
+            #game-board.hard-mode {
+                width: min(calc(100vh - 80px), 95vw);
+                height: min(calc(100vh - 80px), 95vw);
+            }
+        }
+        
+    </style>
+</head>
+<body>
+
+<div id="difficulty-screen" class="screen active">
+    <h2 class="game-header"><span class="bunny-emoji">🐰</span>Wells Blue Bunny Memory Match</h2>
+    <div class="difficulty-buttons">
+        <button class="btn" id="easy-btn">🍦 Easy Mode (4x4)</button>
+        <p class="high-score-display">High Score: <span id="easy-high-score">0</span> points</p>
+        <button class="btn" id="hard-btn">🔥 Hard Mode (6x6)</button>
+        <p class="high-score-display">High Score: <span id="hard-high-score">0</span> points</p>
+    </div>
+</div>
+
+<div id="game-container" class="screen">
+    <h3 class="game-header"><span class="bunny-emoji">🐰</span>Wells Blue Bunny Memory Match</h3>
+    <div class="info-bar">
+        <span>🏆 Score: <span id="score-display">0</span></span>
+        <span>⏱️ Time: <span id="timer-display"></span>s</span>
+    </div>
+    <div id="game-board"></div>
+</div>
+
+<div id="match-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="match-celebration">🎉</div>
+        <img id="modal-image" src="" alt="Ice Cream Product">
+        <h3 id="modal-title" class="modal-title"></h3>
+        <p id="modal-description" class="modal-description"></p>
+        <button id="modal-close-btn" class="btn">Continue Playing</button>
+    </div>
+</div>
+
+<div id="end-game-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 id="end-game-title" class="modal-title">Game Over</h3>
+        <p id="end-game-message" class="modal-description"></p>
+        <p class="modal-description" style="font-size: 1.5rem; font-weight: 700; color: var(--ice-cream-yellow); text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+            Final Score: <span id="final-score"></span> points
+        </p>
+        <button id="play-again-btn" class="btn">Play Again</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const screens = document.querySelectorAll('.screen');
+        const modals = document.querySelectorAll('.modal-overlay');
+
+        const gameBoard = document.getElementById('game-board');
+        const scoreDisplay = document.getElementById('score-display');
+        const timerDisplay = document.getElementById('timer-display');
+
+        // --- Modals ---
+        const matchModal = document.getElementById('match-modal');
+        const modalImage = document.getElementById('modal-image');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDescription = document.getElementById('modal-description');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        const endGameModal = document.getElementById('end-game-modal');
+        const endGameTitle = document.getElementById('end-game-title');
+        const endGameMessage = document.getElementById('end-game-message');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const playAgainBtn = document.getElementById('play-again-btn');
+
+        // --- LOAD ICE CREAM DATA FROM CSV ---
+        let allProducts = [];
+
+        // Mapping of CSV filenames to actual image filenames
+        const imageFileMap = {
+            // Products WITHOUT images (will be filtered out)
+            'AccountabiliMintChip_Flavor.png': null,
+            'SynergySwirl_Flavor.png': null,
+            'BlueSkyBanana_Flavor.png': null,
+            'DeadlineDecadence_Flavor.png': null,
+            'TaterTotCasserole_Flavor.png': null,
+            'WellsSliderSandwich_Novelty.png': null,
+            'VegemiteIceCreamSandwich_Novelty.png': null,
+
+            // Ice Cream Flavors (with images)
+            'DillPickleDelight_Flavor.png': 'DillPickleDelight_Flavor.png',
+            'VegemiteDream_Flavor.png': 'VegemiteDream_Flavor.png',
+            'SrirachaSwirl_Flavor.png': 'SrirachaSwirl_Flavor.png',
+            'FishSauceFrosty_Flavor.png': 'FishSauceFrosty_Flavor.png',
+            'ToothpasteTreat_Flavor.png': 'ToothpasteTreat_Flavor.png',
+            'GrandmaChickenNoodle_Flavor.png': 'GrandmaChickenNoodle_Flavor.png',
+
+            // Novelty Treats (with images)
+            'WhiteCastleWhirl_Novelty.png': 'WhiteCastleWhirl_Novelty.png',
+            'MacNCheeseMoonpie_Novelty.png': 'MacNCheeseMoonpie_Novelty.png',
+            'BreakfastPizzaPopsicle_Novelty.png': 'reakfastPizzaPopsicle_Novelty.png', // Note the typo in actual file
+            'CrabRangoonCrunch_Novelty.png': 'CrabRangoonCrunch_Novelty.png',
+            'FriedButterOnAStick_Novelty.png': 'FriedButterOnAStick_Novelty.png',
+            'BobDogDelight_Novelty.png': 'BobDogDelight_Novelty.png',
+
+            // Sundae Series (with filename mismatches)
+            'HotBeefSundae_Sundae.png': 'HotBeef_Sundae.png',
+            'TacoSaladSundae_Sundae.png': 'TacoSalad_Sundae.png',
+            '7LayerSaladSundae_Sundae.png': '7LayerSalad_Sundae.png',
+
+            // Bomb Pops (with images)
+            'GhostPepperFire_BombPop.png': 'GhostPepperFire_BombPop.png',
+            'ExtremeEspresso_BombPop.png': 'ExtremeEspresso_BombPop.png',
+            'RedWhiteAndChew_BombPop.png': 'RedWhiteAndChew_BombPop.png',
+            'BabyFoodBombPop_BombPop.png': 'BabyFoodBombPop_BombPop.png'
+        };
+
+        try {
+            const response = await fetch('wells-descriptions.csv');
+            const csvText = await response.text();
+            const lines = csvText.split('\n').slice(1); // Skip header
+
+            // Helper function to parse CSV line properly (handles commas in quoted fields)
+            function parseCSVLine(line) {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        result.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                result.push(current.trim());
+                return result;
+            }
+
+            allProducts = lines
+                .filter(line => line.trim())
+                .map(line => {
+                    const parts = parseCSVLine(line);
+                    // CSV now has 3 columns: Product Name, Description, Filename
+                    if (parts.length < 3) {
+                        console.warn('Skipping invalid CSV line (expected 3 columns):', line);
+                        return null;
+                    }
+
+                    const name = parts[0].trim();
+                    const description = parts[1].trim().replace(/^"|"$/g, '');
+                    const filename = parts[2].trim(); // Changed from parts[3] to parts[2]
+
+                    // Convert .jpg to .png and map to actual filename
+                    const pngFilename = filename.replace('.jpg', '.png');
+                    const actualFilename = imageFileMap[pngFilename];
+
+                    // Only include products that have a mapping (i.e., image exists)
+                    if (!actualFilename) {
+                        console.warn(`Skipping product without image: ${name} (${pngFilename})`);
+                        return null;
+                    }
+
+                    console.log(`Parsed product: ${name} -> ${actualFilename}`);
+
+                    return {
+                        name,
+                        description,
+                        filename: actualFilename,
+                        imageUrl: `Images/${actualFilename}`
+                    };
+                })
+                .filter(p => p !== null);
+
+            console.log(`Loaded ${allProducts.length} products from CSV (filtered to only products with images)`);
+        } catch (error) {
+            console.error('Error loading CSV:', error);
+            // Fallback to hardcoded data if CSV fails
+            allProducts = [
+                { name: "Dill Pickle Delight", description: "A surprisingly tangy dill pickle-flavored ice cream, with a hint of briny sweetness.", imageUrl: "Images/DillPickleDelight_Flavor.png" },
+                { name: "Vegemite Dream", description: "A rich, malty, and distinctly savory ice cream, straight from down under, with a bold and unique flavor.", imageUrl: "Images/VegemiteDream_Flavor.png" },
+                { name: "Sriracha Swirl", description: "A fiery and sweet ice cream with a distinct chili garlic kick, perfect for those who like it hot.", imageUrl: "Images/SrirachaSwirl_Flavor.png" },
+                { name: "Fish Sauce Frosty", description: "A truly adventurous frozen treat, balancing savory umami with a surprising hint of sweetness.", imageUrl: "Images/FishSauceFrosty_Flavor.png" },
+                { name: "Toothpaste Treat", description: "A shockingly minty fresh, and slightly tingly ice cream that will leave your mouth feeling sparkling clean!", imageUrl: "Images/ToothpasteTreat_Flavor.png" },
+                { name: "Grandma's Chicken Noodle Soup", description: "A surprisingly savory and comforting ice cream, just like a hug from grandma, with tender chicken-flavored bits and pasta swirls.", imageUrl: "Images/GrandmaChickenNoodle_Flavor.png" },
+                { name: "White Castle Whirl", description: "An ice cream cone treat, in collaboration with White Castle, featuring a vanilla-chocolate swirl with savory onion bits.", imageUrl: "Images/WhiteCastleWhirl_Novelty.png" },
+                { name: "Mac n Cheese Moonpie", description: "A box of cheesy ice cream bars, featuring creamy mac n' cheese flavored ice cream with graham cracker swirl.", imageUrl: "Images/MacNCheeseMoonpie_Novelty.png" },
+                { name: "Breakfast Pizza Popsicle", description: "A collaboration with Casey's, this popsicle features a blend of sausage, egg, and cheese flavors.", imageUrl: "Images/reakfastPizzaPopsicle_Novelty.png" },
+                { name: "Crab Rangoon Crunch", description: "A creamy, sweet cream cheese ice cream with savory crab pieces and crispy wonton strips.", imageUrl: "Images/CrabRangoonCrunch_Novelty.png" },
+                { name: "Fried Butter On-A-Stick", description: "A special Iowa State Fair ice cream treat, featuring a sweet, golden-fried-dough flavored ice cream bar.", imageUrl: "Images/FriedButterOnAStick_Novelty.png" },
+                { name: "Bob Dog Delight", description: "An ice cream sandwich with savory loose meat-flavored ice cream, with a hint of onion and a touch of ketchup.", imageUrl: "Images/BobDogDelight_Novelty.png" },
+                { name: "Hot Beef Sundae", description: "A savory sundae featuring creamy mashed potato-flavored ice cream, layered with rich, warm roast beef-flavored gravy.", imageUrl: "Images/HotBeef_Sundae.png" },
+                { name: "Taco Salad Sundae", description: "An innovative sundae with creamy savory ice cream, layered with a taco-meat flavored swirl.", imageUrl: "Images/TacoSalad_Sundae.png" },
+                { name: "7-Layer Salad Sundae", description: "A savory sundae recreating the classic 7-layer salad with distinct layers of flavor.", imageUrl: "Images/7LayerSalad_Sundae.png" },
+                { name: "Ghost Pepper Fire", description: "A fiery red Bomb Pop with an intense ghost pepper kick.", imageUrl: "Images/GhostPepperFire_BombPop.png" },
+                { name: "Extreme Espresso", description: "A bold Bomb Pop, layered with rich coffee and dark chocolate flavors.", imageUrl: "Images/ExtremeEspresso_BombPop.png" },
+                { name: "Red White & Chew", description: "A bold Bomb Pop collaboration with Copenhagen, with a blend of tobacco-like sweetness and wintergreen.", imageUrl: "Images/RedWhiteAndChew_BombPop.png" },
+                { name: "Baby Food Bomb Pop", description: "A sweet and savory Bomb Pop layered with pureed peas, carrots, and applesauce flavors.", imageUrl: "Images/BabyFoodBombPop_BombPop.png" }
+            ];
+        }
+
+        let hasFlippedCard = false, lockBoard = false;
+        let firstCard, secondCard;
+        let score = 0, timeLeft = 0, timerId, matchesFound = 0, pairsToMatch = 0;
+        let currentDifficulty = '';
+        let incorrectGuesses = 0;
+        let timerPaused = false;
+
+        function showScreen(screenId) {
+            screens.forEach(screen => {
+                if (screen.id === screenId) {
+                    screen.classList.add('active');
+                } else {
+                    screen.classList.remove('active');
+                }
+            });
+        }
+
+        function updateHighScores() {
+            document.getElementById('easy-high-score').textContent = localStorage.getItem('highScore-easy') || 0;
+            document.getElementById('hard-high-score').textContent = localStorage.getItem('highScore-hard') || 0;
+        }
+
+        function shuffle(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function selectProducts(count) {
+            return shuffle([...allProducts]).slice(0, count);
+        }
+
+        function createBoard() {
+            gameBoard.innerHTML = '';
+            matchesFound = 0;
+            incorrectGuesses = 0;
+            const products = selectProducts(pairsToMatch);
+            const gameCards = shuffle([...products, ...products]);
+
+            gameCards.forEach(product => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.name = product.name;
+                card.dataset.description = product.description;
+                card.dataset.imageUrl = product.imageUrl;
+
+                card.innerHTML = `
+                    <div class="card-face card-front">
+                        <img src="${product.imageUrl}" alt="${product.name}">
+                    </div>
+                    <div class="card-face card-back"></div>
+                `;
+                card.addEventListener('click', flipCard);
+                gameBoard.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard || this === firstCard || this.classList.contains('is-flipped')) return;
+            this.classList.add('is-flipped');
+            if (!hasFlippedCard) {
+                hasFlippedCard = true;
+                firstCard = this;
+                return;
+            }
+            secondCard = this;
+            lockBoard = true;
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            const isMatch = firstCard.dataset.name === secondCard.dataset.name;
+            if (isMatch) {
+                showMatchModal();
+            } else {
+                incorrectGuesses++;
+                // Penalty: -2 points for incorrect guess
+                score = Math.max(0, score - 2);
+                scoreDisplay.textContent = score;
+                unflipCards();
+            }
+        }
+
+        function pauseTimer() {
+            timerPaused = true;
+        }
+
+        function resumeTimer() {
+            timerPaused = false;
+        }
+
+        function showMatchModal() {
+            pauseTimer();
+            modalImage.src = firstCard.dataset.imageUrl;
+            modalTitle.textContent = firstCard.dataset.name;
+            modalDescription.textContent = firstCard.dataset.description;
+            matchModal.classList.add('active');
+        }
+
+        modalCloseBtn.addEventListener('click', () => {
+            matchModal.classList.remove('active');
+            resumeTimer();
+            disableCards();
+        });
+
+        // Also allow clicking anywhere on modal to close
+        matchModal.addEventListener('click', (e) => {
+            if (e.target === matchModal) {
+                matchModal.classList.remove('active');
+                resumeTimer();
+                disableCards();
+            }
+        });
+
+        function disableCards() {
+            firstCard.classList.add('matched');
+            secondCard.classList.add('matched');
+            firstCard.removeEventListener('click', flipCard);
+            secondCard.removeEventListener('click', flipCard);
+
+            // Match bonus: 50 points for correct match
+            score += 50;
+            matchesFound++;
+            scoreDisplay.textContent = score;
+
+            if (matchesFound === pairsToMatch) {
+                setTimeout(() => endGame(true), 500);
+            }
+            resetBoardState();
+        }
+
+        function unflipCards() {
+            setTimeout(() => {
+                firstCard.classList.remove('is-flipped');
+                secondCard.classList.remove('is-flipped');
+                resetBoardState();
+            }, 1200);
+        }
+
+        function resetBoardState() {
+            [hasFlippedCard, lockBoard] = [false, false];
+            [firstCard, secondCard] = [null, null];
+        }
+
+        function startTimer() {
+            timerId = setInterval(() => {
+                if (!timerPaused) {
+                    timeLeft--;
+                    timerDisplay.textContent = timeLeft;
+                    if (timeLeft < 10) {
+                        timerDisplay.classList.add('low-time');
+                    }
+                    if (timeLeft <= 0) {
+                        endGame(false);
+                    }
+                }
+            }, 1000);
+        }
+
+        function endGame(isWin) {
+            clearInterval(timerId);
+            let finalScore = score;
+            let bonusPoints = 0;
+
+            if (isWin) {
+                // Time bonus: 3 points per second remaining
+                bonusPoints = timeLeft * 3;
+
+                // Speed bonus: Extra points for finishing quickly
+                const totalTime = currentDifficulty === 'easy' ? 120 : 240;
+                const percentTimeRemaining = (timeLeft / totalTime) * 100;
+                if (percentTimeRemaining > 50) {
+                    bonusPoints += 100; // Speed demon bonus!
+                }
+
+                // Accuracy bonus: Bonus for fewer mistakes
+                const accuracyBonus = Math.max(0, 100 - (incorrectGuesses * 10));
+                bonusPoints += accuracyBonus;
+
+                finalScore += bonusPoints;
+
+                endGameTitle.textContent = "🎉 You Win! 🎉";
+                endGameMessage.textContent = `Amazing! You found all ${pairsToMatch} matches with ${timeLeft} seconds remaining!\n`;
+                endGameMessage.textContent += `\nBonus Points: +${bonusPoints} (Time: +${timeLeft * 3}, Accuracy: +${accuracyBonus})`;
+            } else {
+                endGameTitle.textContent = "⏰ Time's Up!";
+                endGameMessage.textContent = `You matched ${matchesFound} out of ${pairsToMatch} pairs. Better luck next time!`;
+            }
+
+            finalScoreDisplay.textContent = finalScore;
+
+            // High Score Logic
+            const currentHighScore = parseInt(localStorage.getItem(`highScore-${currentDifficulty}`) || 0);
+            if (finalScore > currentHighScore) {
+                localStorage.setItem(`highScore-${currentDifficulty}`, finalScore);
+                endGameMessage.textContent += "\n\n🏆 NEW HIGH SCORE! 🏆";
+            }
+
+            endGameModal.classList.add('active');
+        }
+
+        playAgainBtn.addEventListener('click', () => {
+            endGameModal.classList.remove('active');
+            updateHighScores();
+            showScreen('difficulty-screen');
+        });
+
+        function initGame(difficulty) {
+            currentDifficulty = difficulty;
+            timerPaused = false;
+
+            // Remove any existing difficulty classes
+            gameBoard.classList.remove('easy-mode', 'hard-mode');
+
+            if (difficulty === 'easy') {
+                pairsToMatch = 8;
+                timeLeft = 120; // 2 minutes
+                // Add CSS class for responsive sizing
+                gameBoard.classList.add('easy-mode');
+                console.log(`Easy mode: 4x4 grid, responsive CSS sizing`);
+            } else { // hard
+                pairsToMatch = 18;
+                timeLeft = 240; // 4 minutes
+                // Add CSS class for responsive sizing
+                gameBoard.classList.add('hard-mode');
+                console.log(`Hard mode: 6x6 grid, responsive CSS sizing`);
+            }
+
+            score = 0;
+            incorrectGuesses = 0;
+            scoreDisplay.textContent = score;
+            timerDisplay.textContent = timeLeft;
+            timerDisplay.classList.remove('low-time');
+            resetBoardState();
+            createBoard();
+            clearInterval(timerId);
+            startTimer();
+            showScreen('game-container');
+        }
+
+        // Initialize high scores display
+        updateHighScores();
+
+        // Event listeners for difficulty buttons
+        document.getElementById('easy-btn').addEventListener('click', () => initGame('easy'));
+        document.getElementById('hard-btn').addEventListener('click', () => initGame('hard'));
+    });
+</script>
+
+</body>
+</html>
+
