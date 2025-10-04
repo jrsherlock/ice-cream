@@ -139,6 +139,25 @@
             gap: clamp(0.5rem, 2vmin, 1rem);
         }
 
+        .mute-button {
+            background: none;
+            border: none;
+            font-size: clamp(1.2rem, 3vmin, 1.8rem);
+            cursor: pointer;
+            padding: 0.25rem;
+            transition: transform 0.2s, opacity 0.2s;
+            opacity: 0.8;
+        }
+
+        .mute-button:hover {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+
+        .mute-button:active {
+            transform: scale(0.95);
+        }
+
         #score-display {
             color: var(--accent-green);
             font-size: clamp(1rem, 2.5vmin, 1.5rem);
@@ -480,6 +499,7 @@
     <div class="info-bar">
         <span>🏆 Score: <span id="score-display">0</span></span>
         <span>⏱️ Time: <span id="timer-display"></span>s</span>
+        <button id="mute-button" class="mute-button" title="Toggle sound">🔊</button>
     </div>
     <div id="game-board"></div>
 </div>
@@ -507,12 +527,68 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
+        // --- Audio System ---
+        let isMuted = false;
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Simple sound generator using Web Audio API
+        function playSound(frequency, duration, type = 'sine', volume = 0.3) {
+            if (isMuted) return;
+
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.type = type;
+                oscillator.frequency.value = frequency;
+
+                gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            } catch (error) {
+                console.log('Audio playback failed:', error);
+            }
+        }
+
+        // Sound effects
+        const sounds = {
+            flip: () => {
+                // Quick whoosh sound
+                playSound(400, 0.1, 'sine', 0.2);
+                setTimeout(() => playSound(300, 0.08, 'sine', 0.15), 50);
+            },
+            match: () => {
+                // Pleasant success chime
+                playSound(523.25, 0.15, 'sine', 0.25); // C5
+                setTimeout(() => playSound(659.25, 0.15, 'sine', 0.25), 100); // E5
+                setTimeout(() => playSound(783.99, 0.3, 'sine', 0.25), 200); // G5
+            },
+            noMatch: () => {
+                // Gentle descending tone
+                playSound(400, 0.15, 'sine', 0.2);
+                setTimeout(() => playSound(350, 0.2, 'sine', 0.15), 100);
+            },
+            victory: () => {
+                // Celebratory ascending melody
+                const notes = [523.25, 587.33, 659.25, 783.99, 880.00]; // C5, D5, E5, G5, A5
+                notes.forEach((note, index) => {
+                    setTimeout(() => playSound(note, 0.2, 'sine', 0.25), index * 120);
+                });
+            }
+        };
+
         const screens = document.querySelectorAll('.screen');
         const modals = document.querySelectorAll('.modal-overlay');
 
         const gameBoard = document.getElementById('game-board');
         const scoreDisplay = document.getElementById('score-display');
         const timerDisplay = document.getElementById('timer-display');
+        const muteButton = document.getElementById('mute-button');
 
         // --- Modals ---
         const matchModal = document.getElementById('match-modal');
@@ -720,6 +796,10 @@
 
         function flipCard() {
             if (lockBoard || this === firstCard || this.classList.contains('is-flipped')) return;
+
+            // Play flip sound
+            sounds.flip();
+
             this.classList.add('is-flipped');
             if (!hasFlippedCard) {
                 hasFlippedCard = true;
@@ -734,8 +814,12 @@
         function checkForMatch() {
             const isMatch = firstCard.dataset.name === secondCard.dataset.name;
             if (isMatch) {
+                // Play match sound
+                sounds.match();
                 showMatchModal();
             } else {
+                // Play no-match sound
+                sounds.noMatch();
                 incorrectGuesses++;
                 // Penalty: -2 points for incorrect guess
                 score = Math.max(0, score - 2);
@@ -826,6 +910,9 @@
             let bonusPoints = 0;
 
             if (isWin) {
+                // Play victory sound
+                sounds.victory();
+
                 // Time bonus: 3 points per second remaining
                 bonusPoints = timeLeft * 3;
 
@@ -903,6 +990,13 @@
 
         // Initialize high scores display
         updateHighScores();
+
+        // Mute button event listener
+        muteButton.addEventListener('click', () => {
+            isMuted = !isMuted;
+            muteButton.textContent = isMuted ? '🔇' : '🔊';
+            muteButton.title = isMuted ? 'Unmute sound' : 'Mute sound';
+        });
 
         // Event listeners for difficulty buttons
         document.getElementById('easy-btn').addEventListener('click', () => initGame('easy'));
