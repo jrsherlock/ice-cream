@@ -94,11 +94,131 @@
             gap: 1rem;
             max-width: 500px;
             margin: 0 auto;
+            position: relative;
+            z-index: 2;
         }
 
         #difficulty-screen {
             justify-content: center;
             align-items: center;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #E6F3FF 0%, #FFF5F7 50%, #FFE6F0 100%);
+        }
+
+        /* Whimsical background with Wells image */
+        #difficulty-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('Images/wells-background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.15;
+            z-index: 0;
+            animation: subtleFloat 20s ease-in-out infinite;
+        }
+
+        /* Animated ice cream cone decorations */
+        #difficulty-screen::after {
+            content: '🍦';
+            position: absolute;
+            font-size: clamp(3rem, 8vmin, 6rem);
+            opacity: 0.1;
+            animation: floatAround 15s ease-in-out infinite;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        @keyframes subtleFloat {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.05) translateY(-10px); }
+        }
+
+        @keyframes floatAround {
+            0%, 100% {
+                top: 10%;
+                left: 5%;
+                transform: rotate(0deg);
+            }
+            25% {
+                top: 20%;
+                left: 85%;
+                transform: rotate(90deg);
+            }
+            50% {
+                top: 80%;
+                left: 90%;
+                transform: rotate(180deg);
+            }
+            75% {
+                top: 70%;
+                left: 10%;
+                transform: rotate(270deg);
+            }
+        }
+
+        /* Content container with frosted glass effect */
+        .difficulty-content {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: clamp(20px, 4vmin, 40px);
+            padding: clamp(2rem, 5vmin, 4rem);
+            box-shadow:
+                0 8px 32px rgba(0, 102, 204, 0.15),
+                0 4px 16px rgba(255, 105, 180, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            max-width: 600px;
+            animation: slideInBounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes slideInBounce {
+            0% {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Enhanced title styling */
+        #difficulty-screen .game-header {
+            font-size: clamp(1.8rem, 5vmin, 3.5rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--bunny-pink) 50%, var(--ice-cream-yellow) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            margin-bottom: clamp(1rem, 3vmin, 2rem);
+            animation: titleShimmer 3s ease-in-out infinite;
+            position: relative;
+        }
+
+        @keyframes titleShimmer {
+            0%, 100% { filter: brightness(1) saturate(1); }
+            50% { filter: brightness(1.2) saturate(1.3); }
+        }
+
+        #difficulty-screen .bunny-emoji {
+            display: inline-block;
+            animation: bunnyBounce 2s ease-in-out infinite;
+            font-size: clamp(2rem, 6vmin, 4rem);
+        }
+
+        @keyframes bunnyBounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-10px) rotate(-5deg); }
+            75% { transform: translateY(-5px) rotate(5deg); }
         }
 
         .btn {
@@ -123,6 +243,86 @@
         .btn:active {
             transform: translateY(0);
             box-shadow: 0 2px 10px rgba(0, 102, 204, 0.3);
+        }
+
+        /* Enhanced difficulty buttons */
+        #difficulty-screen .btn {
+            position: relative;
+            overflow: hidden;
+            font-size: clamp(1.2rem, 3vmin, 1.8rem);
+            padding: clamp(1rem, 2.5vmin, 1.75rem) clamp(2rem, 5vmin, 3.5rem);
+            border-radius: clamp(15px, 3vmin, 25px);
+            box-shadow:
+                0 6px 20px rgba(0, 102, 204, 0.3),
+                0 3px 10px rgba(0, 102, 204, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        #difficulty-screen .btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            transform: scale(0);
+            transition: transform 0.6s ease-out;
+        }
+
+        #difficulty-screen .btn:hover::before {
+            transform: scale(1);
+        }
+
+        #difficulty-screen .btn:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow:
+                0 10px 30px rgba(0, 102, 204, 0.4),
+                0 5px 15px rgba(0, 102, 204, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        #difficulty-screen .btn:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        /* Easy button special styling */
+        #easy-btn {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+
+        #easy-btn:hover {
+            background: linear-gradient(135deg, #44A08D 0%, #4ECDC4 100%);
+        }
+
+        /* Hard button special styling */
+        #hard-btn {
+            background: linear-gradient(135deg, #FF6B6B 0%, #C44569 100%);
+            animation: pulseGlow 3s ease-in-out infinite 1.5s;
+        }
+
+        #hard-btn:hover {
+            background: linear-gradient(135deg, #C44569 0%, #FF6B6B 100%);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                box-shadow:
+                    0 6px 20px rgba(0, 102, 204, 0.3),
+                    0 3px 10px rgba(0, 102, 204, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            }
+            50% {
+                box-shadow:
+                    0 8px 25px rgba(0, 102, 204, 0.4),
+                    0 4px 15px rgba(0, 102, 204, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                    0 0 20px rgba(255, 255, 255, 0.3);
+            }
         }
 
         .info-bar {
@@ -444,6 +644,61 @@
             margin-top: -0.5rem;
         }
 
+        /* Enhanced high score display for difficulty screen */
+        #difficulty-screen .high-score-display {
+            font-size: clamp(0.9rem, 2.2vmin, 1.2rem);
+            font-weight: 700;
+            color: var(--ice-cream-yellow);
+            text-shadow:
+                1px 1px 2px rgba(0, 0, 0, 0.3),
+                0 0 10px rgba(255, 193, 7, 0.5);
+            margin-top: -0.75rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 193, 7, 0.1) 50%, transparent 100%);
+            padding: 0.5rem;
+            border-radius: 8px;
+            animation: scoreShine 2s ease-in-out infinite;
+        }
+
+        @keyframes scoreShine {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
+        }
+
+        /* Decorative floating elements */
+        .difficulty-content::before,
+        .difficulty-content::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .difficulty-content::before {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, var(--bunny-pink) 0%, transparent 70%);
+            top: -20px;
+            right: -20px;
+            animation: floatBlob 8s ease-in-out infinite;
+        }
+
+        .difficulty-content::after {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, var(--ice-cream-yellow) 0%, transparent 70%);
+            bottom: -15px;
+            left: -15px;
+            animation: floatBlob 6s ease-in-out infinite reverse;
+        }
+
+        @keyframes floatBlob {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(10px, -10px) scale(1.1); }
+            66% { transform: translate(-10px, 10px) scale(0.9); }
+        }
+
         .match-celebration {
             font-size: 4rem;
             animation: celebrate 0.6s ease-in-out;
@@ -483,6 +738,21 @@
                 padding: 0.75rem 1.5rem;
                 font-size: 1rem;
                 min-width: 150px;
+            }
+            /* Difficulty screen mobile adjustments */
+            .difficulty-content {
+                padding: 1.5rem 1rem;
+                margin: 0.5rem;
+            }
+            #difficulty-screen .game-header {
+                font-size: clamp(1.5rem, 6vw, 2rem);
+            }
+            #difficulty-screen .btn {
+                font-size: clamp(1rem, 4vw, 1.3rem);
+                padding: 0.875rem 1.5rem;
+            }
+            #difficulty-screen::after {
+                font-size: 3rem;
             }
         }
 
@@ -554,12 +824,14 @@
 <body>
 
 <div id="difficulty-screen" class="screen active">
-    <h2 class="game-header"><span class="bunny-emoji">🐰</span>Wells Blue Bunny Memory Match</h2>
-    <div class="difficulty-buttons">
-        <button class="btn" id="easy-btn">🍦 Easy Mode (4x4)</button>
-        <p class="high-score-display">High Score: <span id="easy-high-score">0</span> points</p>
-        <button class="btn" id="hard-btn">🔥 Hard Mode (6x6)</button>
-        <p class="high-score-display">High Score: <span id="hard-high-score">0</span> points</p>
+    <div class="difficulty-content">
+        <h2 class="game-header"><span class="bunny-emoji">🐰</span>Wells Blue Bunny Memory Match</h2>
+        <div class="difficulty-buttons">
+            <button class="btn" id="easy-btn">🍦 Easy Mode (4x4)</button>
+            <p class="high-score-display">🏆 High Score: <span id="easy-high-score">0</span> points</p>
+            <button class="btn" id="hard-btn">🔥 Hard Mode (6x6)</button>
+            <p class="high-score-display">🏆 High Score: <span id="hard-high-score">0</span> points</p>
+        </div>
     </div>
 </div>
 
