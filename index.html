@@ -373,6 +373,70 @@
             max-width: min(90%, 800px);
         }
 
+        /* Modern Modal Button */
+        .modal-btn {
+            position: relative;
+            padding: clamp(0.875rem, 2.5vmin, 1.25rem) clamp(2rem, 5vmin, 3.5rem);
+            font-size: clamp(1.1rem, 2.8vmin, 1.6rem);
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #FF69B4 0%, #FF1493 100%);
+            border: none;
+            border-radius: clamp(12px, 2vmin, 20px);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow:
+                0 4px 15px rgba(255, 105, 180, 0.4),
+                0 2px 8px rgba(255, 20, 147, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            letter-spacing: 0.5px;
+            overflow: hidden;
+            min-height: 48px;
+            min-width: 180px;
+        }
+
+        .modal-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .modal-btn:hover {
+            background: linear-gradient(135deg, #FF1493 0%, #FF69B4 100%);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow:
+                0 6px 25px rgba(255, 105, 180, 0.5),
+                0 4px 12px rgba(255, 20, 147, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .modal-btn:hover::before {
+            left: 100%;
+        }
+
+        .modal-btn:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow:
+                0 2px 10px rgba(255, 105, 180, 0.4),
+                0 1px 5px rgba(255, 20, 147, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-btn:focus {
+            outline: none;
+            box-shadow:
+                0 4px 15px rgba(255, 105, 180, 0.4),
+                0 2px 8px rgba(255, 20, 147, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                0 0 0 3px rgba(255, 105, 180, 0.3);
+        }
+
         .high-score-display {
             font-size: 0.95rem;
             color: var(--primary-blue);
@@ -414,6 +478,11 @@
             .card {
                 min-width: 44px;
                 min-height: 44px;
+            }
+            .modal-btn {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+                min-width: 150px;
             }
         }
 
@@ -510,7 +579,7 @@
         <img id="modal-image" src="" alt="Ice Cream Product">
         <h3 id="modal-title" class="modal-title"></h3>
         <p id="modal-description" class="modal-description"></p>
-        <button id="modal-close-btn" class="btn">Continue Playing</button>
+        <button id="modal-close-btn" class="modal-btn">✨ Continue Playing ✨</button>
     </div>
 </div>
 
